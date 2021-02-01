@@ -68,7 +68,7 @@ def builder(preallocation) :
     return NP
 
 # -----------------------------------------------------------------------------------------------------
-def Computation(t,input,N,dt,population,neuronIndex) :
+def computation(t,input,N,dt,population,neuronIndex) :
     # Parameters: Inputs
     # t = timestep
     # input = current spikes of the whole network
@@ -95,7 +95,7 @@ def Computation(t,input,N,dt,population,neuronIndex) :
     # Currents
     N['I_injection_Ex'][neuronIndex,t] = \
         N['G_injection'][population]*\
-        N'[A_injection_Ex'][neuronIndex,t]*\
+        N['A_injection_Ex'][neuronIndex,t]*\
         (N['V_injection_Ex'][population] \
          - N['V'][neuronIndex,t])
 
@@ -199,3 +199,36 @@ for i in np.size(N_Indices,1) :# loop through all populations
         for ii in (N_Indices(i-1)+1):N_Indices(i):
             N = NeuuCom(t,W(:,ii).*N.spike(:,t),N,dt,i,ii)
     return N
+
+# ----------------------------------------------------------------------------------------------------
+def Weighting(C):
+
+    # each weight represents the strength of connection to that neuron
+    # columns: each neuron of the populations
+    # rows: connections from the other neurons
+    # negative weights depict inhibitory connections
+
+    # setup connections for each population individually
+    WE21 = 1 # Weight external input to population 1 (E21)
+    W122 = 4
+    W123 = 0.8
+    W124 = 4
+    W225 = 3
+    W423 = 0.71
+    W526 = 4
+    W622 = X
+    W623 = X
+    W624 = X
+    Weights =(  [WE21, 0, W122, 0, W123, 0, W124, 0, 0, 0, 0, 0],\
+                [0, WE21, 0, W122, 0, W123, 0, W124, 0, 0, 0, 0],\
+                [0, 0, 0, 0, 0, 0, 0, 0, W225, 0, 0, 0],\
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, W225, 0, 0],\
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\
+                [0, 0, 0, 0, 0, W423, 0, 0, 0, 0, 0, 0],\
+                [0, 0, 0, 0, W423, 0, 0, 0, 0, 0, 0, 0],\
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, W526, 0],\
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, W526],\
+                [0, 0, 0, W622, 0, W623, 0, 0, 0, 0, 0, 0],\
+                [0, 0, W622, 0, W623, 0, W624, W624, 0, 0, 0, 0]);
+    return Weights
