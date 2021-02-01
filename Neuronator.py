@@ -7,6 +7,15 @@ import numpy as np
 # weighting: defines the weights
 
 def builder(preallocation) :
+
+    NeuronIndices = tuple()
+    NeuronIndices[0] = [1,2] # input neurons
+    NeuronIndices[1] = [3,4] # speed neurons
+    NeuronIndices[2] = [5,6] # Type II
+    NeuronIndices[3] = [7,8] # Type I
+    NeuronIndices[4] = [9,10] # Adaptation
+    NeuronIndices[5] = [11,12] # Inhibition
+
     NP = dict()
     # Neuron Parameters
     # Membrane capacitance C_m
@@ -65,7 +74,8 @@ def builder(preallocation) :
     NP['G_leak'] = (5e-9, 5e-9, 5e-9, 5e-9, 5e-9, 5e-9) # [Siemens]
     # spike events
     NP['spike'] = np.zeros(12, preallocation) # [Binary]
-    return NP
+
+    return NP, NeuronIndices
 
 # -----------------------------------------------------------------------------------------------------
 def computation(t,input,N,dt,population,neuronIndex) :
@@ -105,7 +115,7 @@ def computation(t,input,N,dt,population,neuronIndex) :
         (N['V_injection_In'][population]\
          - N['V'](neuronIndex,t))
 
-    N['I_leak'](neuronIndex,t) = \
+    N['I_leak'][neuronIndex,t] = \
         N['G_leak'](population)*\
         (N['V_rest'](population) - \
          N['V'][neuronIndex,t])
@@ -169,14 +179,13 @@ def computation(t,input,N,dt,population,neuronIndex) :
 
     return N
 
-
 # ----------------------------------------------------------------------------------------------------
 def NetworkStepper(N,N_Indices,t,dt,f,W):
 
 # neuron calculations
 for i in np.size(N_Indices,1) :# loop through all populations
     if i == 0 :# 1st population
-        for ii in i:N_Indices(i) :# each ii depicts one neuron of the population
+        for ii in i:N_Indices(i+1) :# each ii depicts one neuron of the population
             N = NeuuCom(t,W(:,ii).*f,N,dt,i,ii) # input is familiarity
 
     elif i == 1 :# 2nd population
@@ -198,6 +207,7 @@ for i in np.size(N_Indices,1) :# loop through all populations
     elif i == 5 :# 6th population
         for ii in (N_Indices(i-1)+1):N_Indices(i):
             N = NeuuCom(t,W(:,ii).*N.spike(:,t),N,dt,i,ii)
+
     return N
 
 # ----------------------------------------------------------------------------------------------------
@@ -230,5 +240,5 @@ def Weighting(C):
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, W526, 0],\
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, W526],\
                 [0, 0, 0, W622, 0, W623, 0, 0, 0, 0, 0, 0],\
-                [0, 0, W622, 0, W623, 0, W624, W624, 0, 0, 0, 0]);
+                [0, 0, W622, 0, W623, 0, W624, W624, 0, 0, 0, 0])
     return Weights
