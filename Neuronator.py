@@ -242,3 +242,85 @@ def Weighting(C):
                 [0, 0, 0, W622, 0, W623, 0, 0, 0, 0, 0, 0],\
                 [0, 0, W622, 0, W623, 0, W624, W624, 0, 0, 0, 0])
     return Weights
+
+def TI(Input,Force,Activation):
+    # Constants
+    C_M = 1e-7 # Membrane capacitance
+    V_R = 0 # V Rest
+    G_I = 1.3e-6 # conductance injection
+    V_I = 1 # V Injection maximum
+    T_I = 0.02 # Tau injection
+    G_L = 1e-7 # conductance leak
+    dt = 0.001 # time resolution
+    # Computations
+    Activation = Activation + Input # Force activation
+    I_Injection = G_I * Activation * (V_I - Force) # Injection current
+    I_Leak = G_L * (V_R - Force) # Leak current
+    dF = (dt / C_M) * (I_Leak + I_Injection) # Force change
+    Force = Force + dF # new force
+    dA = -(dt / T_I) * (Activation) # activation change
+    Activation = Activation + dA # new activation
+
+    return Force,Activation
+
+def TII(Input,Force,Activation):
+    # Constants
+    C_M = 1e-7 # Membrane capacitance
+    V_R = 0 # V Rest
+    G_I = 2e-6 # conductance injection
+    V_I = 1 # V Injection maximum
+    T_I = 0.02 # Tau injection
+    G_L = 1e-7 # conductance leak
+    dt = 0.001 # time resolution
+    # Computations
+    Activation = Activation + Input # Force activation
+    I_Injection = G_I * Activation * (V_I - Force) # Injection current
+    I_Leak = G_L * (V_R - Force) # Leak current
+    dF = (dt / C_M) * (I_Leak + I_Injection) # Force change
+    Force = Force + dF # new force
+    dA = -(dt / T_I) * (Activation) # activation change
+    Activation = Activation + dA # new activation
+
+    return Force,Activation
+
+def TIIS(ExInput, speed, Activation):
+
+    # TypeII Speed neuron
+    # model the behaviour of f muscle generating force[forwardspeed(f)] with f
+    # non spiking leaky&integrate neuron. Tuned for maximum output (1) with
+    # input of 200 Hz
+    # ExInput = spikes from the LAL-output neurons (population2)
+    # f = forwardspeed [Voltage]
+    # A_injection = activation of the "muscles"
+
+    # behaviour variables
+    # membrane capacitance: excitability of the neuron
+    C_m = 5e-9 #[Farad]
+    # synaptic conductance
+    G_injection = 3e-9 # [Siemens] 5e-10 + 2.5e-9*Activation/20
+    # maximum activation
+    a_injection_Ex = 1
+    # time constant for A_synaptic excitatory
+    Tau_injection_Ex = 0.1 #[s]
+    dt = 0.001
+
+    # Leak conductance
+    G_leak= 1e-6 # [Siemens]
+    # Resting potential
+    a_rest = 0 # [deg/sec]
+
+    Activation = Activation + ExInput
+    I_injectionE  = G_injection*Activation*(a_injection_Ex - speed)
+    I_leak = G_leak*(a_rest - speed)
+
+    # voltage change
+    df= (dt/C_m)*(I_leak + I_injectionE)
+
+    # new voltage
+    speed = speed + df
+
+    # synaptic activation variable A_injection: decay excitatory
+    dA_syn = -(dt/Tau_injection_Ex)*Activation
+    Activation = Activation + dA_syn
+
+    return speed, Activation
