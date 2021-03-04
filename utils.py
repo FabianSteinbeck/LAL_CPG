@@ -268,3 +268,35 @@ def rmf(query_img, ref_imgs, matcher=mae, d_range=(0, 360), d_step=1):
         sims[:, i] = matcher(rqimg, ref_imgs)
 
     return sims if sims.shape[0] > 1 else sims[0]
+
+
+def squash_deg(degrees):
+    '''
+    Squashes degrees into the range of 0-360
+    This is useful when dealing with negative degrees or degrees over 360
+    :param degrees: A numpy array of values in degrees
+    :return:
+    '''
+    assert not isinstance(degrees, list)
+    return degrees % 360
+
+
+def pre_process(imgs, sets):
+    """
+    Gaussian blur, edge detection and image resize
+    :param imgs:
+    :param sets:
+    :return:
+    """
+    if not isinstance(imgs, list):
+        imgs = [imgs]
+    if sets.get('shape'):
+        shape = sets['shape']
+        imgs = [cv.resize(img, shape) for img in imgs]
+    if sets.get('blur'):
+        imgs = [cv.GaussianBlur(img, (5, 5), 0) for img in imgs]
+    if sets.get('edge_range'):
+        lims = sets['edge_range']
+        imgs = [cv.Canny(img, lims[0], lims[1]) for img in imgs]
+
+    return imgs if len(imgs) > 1 else imgs[0]
