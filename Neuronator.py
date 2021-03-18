@@ -65,17 +65,17 @@ def builder(preallocation) :
     N['A_spontaneous'] = (0, 0.07, 0.0315, 0.06, 0, 0)
     # Synaptic adaptation parameters - ----------------------------------------
     # synaptic adaptation conductance change per activation
-    N['G_adaptation'] = (0, 0, 0, 0, X, 0) # [Siemens] X is place holder
+    N['G_adaptation'] = (0, 0, 0, 0, 4e-7, 0) # [Siemens] X is place holder
     # adaptation conductance step
-    N['G_adaptation_Step'] = (0, 0, 0, 0, X, 0)
+    N['G_adaptation_Step'] = (0, 0, 0, 0, 0.05, 0)
     # spike rate adaptation activation
     N['A_adaptation'] = np.zeros(12, preallocation)
     # spike rate adaptation activation power
-    N['A_adaptation_P'] = (1, 1, 1, 1, X, 1)
+    N['A_adaptation_P'] = (1, 1, 1, 1, 4, 1)
     # adaptation battery for hyperpolarization
     N['V_adaptation'] = (0, 0, 0, 0, -0.07, 0) # [V]
     # spike rate adaptation time constant
-    N['Tau_adaptation'] = (9999999999, 9999999999, 9999999999, 9999999999, X, 9999999999) # [s], huge values for excitatory neurons which don't adapt
+    N['Tau_adaptation'] = (9999999999, 9999999999, 9999999999, 9999999999, 0.5, 9999999999) # [s], huge values for excitatory neurons which don't adapt
     # synaptic input current
     N['I_adaptation'] = np.zeros(12, preallocation)
     # Leak parameters - -------------------------------------------------------
@@ -206,13 +206,13 @@ def NetworkStepper(N,N_Indices,t,dt,f,W):
 '''
 
 # neuron calculations
-for i in np.size(N_Indices,1) :# loop through all populations
+for i in range(0,np.size(N_Indices,1)) :# loop through all populations
     if i == 0 :# 1st population
-        for ii in i:N_Indices(i+1) :# each ii depicts one neuron of the population
+        for ii in range(i,N_Indices(i+1)) :# each ii depicts one neuron of the population
             N = computation(t,W(:,ii).*f,N,dt,i,ii) # input is familiarity
 
     elif i == 1 :# 2nd population
-        for ii in (N_Indices(i-1)+1):N_Indices(i):
+        for ii in range((N_Indices(i-1)+1),N_Indices(i)):
             N = computation(t,W(:,ii).*N.spike(:,t),N,dt,i,ii)
 
     elif i == 2 :# 3rd population
@@ -220,15 +220,15 @@ for i in np.size(N_Indices,1) :# loop through all populations
             N = computation(t,W(:,ii).*N.spike(:,t),N,dt,i,ii)
 
     elif i == 3 :# 4th population
-        for ii in (N_Indices(i-1)+1):N_Indices(i):
+        for ii in range((N_Indices(i-1)+1),N_Indices(i)):
             N = computation(t,W(:,ii).*N.spike(:,t),N,dt,i,ii)
 
     elif i == 4 :# 5th population
-        for ii in (N_Indices(i-1)+1):N_Indices(i):
+        for ii in range((N_Indices(i-1)+1),N_Indices(i)):
             N = computation(t,W(:,ii).*N.spike(:,t),N,dt,i,ii)
 
     elif i == 5 :# 6th population
-        for ii in (N_Indices(i-1)+1):N_Indices(i):
+        for ii in range((N_Indices(i-1)+1),N_Indices(i)):
             N = computation(t,W(:,ii).*N.spike(:,t),N,dt,i,ii)
 
     return N
@@ -250,9 +250,9 @@ def Weighting():
     W225 = 3
     W423 = 0.71
     W526 = 4
-    W622 = X #place holder
-    W623 = X
-    W624 = X
+    W622 = -11
+    W623 = -2.5556
+    W624 = -8.7778
     Weights =(  [WE21, 0, W122, 0, W123, 0, W124, 0, 0, 0, 0, 0],\
                 [0, WE21, 0, W122, 0, W123, 0, W124, 0, 0, 0, 0],\
                 [0, 0, 0, 0, 0, 0, 0, 0, W225, 0, 0, 0],\
