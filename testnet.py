@@ -13,11 +13,11 @@ for img in route['imgs']:
     left, right = image_split(img, overlap=0, blind=0)
 
     # Show the 2 images
-    display_split(left, right)
+    # display_split(left, right)
 
     # Get the similarty for each image with itself.
     # In future test we will change this
     sim_l = cor_coef(left, left)
     sim_r = cor_coef(right, right)
 
-    # Add the LAL_CCP code here
+    # Add the LAL_CPG code here

@@ -15,6 +15,8 @@ steps = T/dt
 Weights = Weighting() # WeightMatrix
 # load lookup table for input neurons
 lookup = load('InputTable')
+#my_data = np.genfromtxt('my_file.csv', delimiter=',')
+
 # load lookup tables for output to force neurons, make them accessible
 global GTI
 temp = load('OutputTableTI')
@@ -22,6 +24,8 @@ GTI = temp.value
 global GTII
 temp = load('OutputTableTII')
 GTII = temp.value
+
+Agent = {}
 
 # "World" settings
 Agent['Centre'] = [np.zeros(1,steps);np.zeros(1,steps)]' # Centrepoint of the Agent
@@ -36,9 +40,9 @@ Agent['TA'] = np.zeros(4,steps) # Turning acceleration
 
 # test
 F = [25,50,75,100]
-Agent['F'] = np.zeros(N_Indices(::-1),steps)
-Agent['F'](1,1:steps) = lookup.table(F(::-1))
-Agent['F'](2,1:steps) = lookup.table(F(::-1))
+Agent['F'] = np.zeros(N_Indices[::-1),steps)
+Agent['F'][1,1:steps) = lookup.table(F[::-1))
+Agent['F'][2,1:steps) = lookup.table(F[::-1))
 
 % % Simulation
 for t in range(0, steps):
@@ -76,7 +80,7 @@ for t in range(0, steps):
     ReactionApproach(Agent[Acceleration](:, t), Agent[Turning](:, t))
 
     # Current angle(Phi) + NewAngle(Rotation) + Noise
-    Phi(t + 1) = Phi(t) + Rotation(t);
+    Phi[t + 1] = Phi[t] + Rotation[t]
 
     Agent[Centre](t + 1,:) = CentrePosition(Agent[Centre](t,:), Phi(t + 1), Distance(t))
 

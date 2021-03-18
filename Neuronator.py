@@ -209,11 +209,11 @@ def NetworkStepper(N,N_Indices,t,dt,f,W):
 for i in range(0,np.size(N_Indices,1)) :# loop through all populations
     if i == 0 :# 1st population
         for ii in range(i,N_Indices(i+1)) :# each ii depicts one neuron of the population
-            N = computation(t,W(:,ii).*f,N,dt,i,ii) # input is familiarity
+            N = computation(t,W[:,ii].*f,N,dt,i,ii) # input is familiarity
 
     elif i == 1 :# 2nd population
         for ii in range((N_Indices(i-1)+1),N_Indices(i)):
-            N = computation(t,W(:,ii).*N.spike(:,t),N,dt,i,ii)
+            N = computation(t,W[:,ii].*N.spike[:,t],N,dt,i,ii)
 
     elif i == 2 :# 3rd population
         for ii in (N_Indices(i-1)+1):N_Indices(i):
