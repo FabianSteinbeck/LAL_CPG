@@ -19,72 +19,68 @@ def builder(preallocation) :
     :return: NeuronIndices = the indices of the different neurons
     '''
 
-    NeuronIndices = tuple()
-    NeuronIndices[0] = [1,2] # input neurons
-    NeuronIndices[1] = [3,4] # speed neurons
-    NeuronIndices[2] = [5,6] # Type II
-    NeuronIndices[3] = [7,8] # Type I
-    NeuronIndices[4] = [9,10] # Adaptation
-    NeuronIndices[5] = [11,12] # Inhibition
+    # input neurons, adapting inhibition neurons, output neurons
+
+    NeuronIndices = ([0, 1], [2, 3], [4, 5])
 
     N = dict()
-    # Neuron Parameters
+    # Neuron Parameters ------------------------------------------------------------
     # Membrane capacitance C_m
-    N['C_m'] = (1e-9, 0.5e-9, 0.5e-9, 0.5e-9, 0.5e-9, 0.5e-9) #[Farad]the smaller, the stronger excitability
+    N['C_m'] = (1e-9, 1e-9, 0.5e-9)  # [Farad]the smaller, the stronger excitability
     # Resting potential
-    N['V_rest'] = (-0.06, -0.06, -0.06, -0.06, -0.06, -0.06) # [V]
+    N['V_rest'] = (-0.06, -0.06, -0.06)  # [V]
     # Cell potential V
-    N['V'] = np.zeros(12, preallocation) # [V]
-    N['V'][:,0] = N['V_rest'][0] # Initial potential
+    N['V'] = np.zeros((6, preallocation + 1))  # [V]
+    N['V'][:,0] = N['V_rest'][0]  # Initial potential
     # Threshold potential V_th
-    N['V_th'] = (-0.05, -0.05, -0.05, -0.05, -0.05, -0.05) # [V]
+    N['V_th'] = (-0.05, -0.05, -0.05)  # [V]
     # Hyperpolarization potential V_hyper
-    N['V_hyper'] = (-0.065, -0.065, -0.065, -0.065, -0.065, -0.065) # [V]
+    N['V_hyper'] = (-0.065, -0.065, -0.065)  # [V]
     # Spike potential V_spike
-    N['V_spike'] = (0.02, 0.02, 0.02, 0.02, 0.02, 0.02) # [V]
+    N['V_spike'] = (0.02, 0.02, 0.02)  # [V]
     # Injection current parameters - ------------------------------------------
     # Synaptic conductance G_injection
-    N['G_injection'] = (1.75e-9, 1.75e-9, 1.75e-9, 1.75e-9, 1.75e-9, 1.75e-9) # [Siemens] the lower, the lower excitability
+    N['G_injection'] = (1.75e-9, 4.2e-9, 3.1415e-9) # [Siemens] the lower, the lower excitability
     # Excitatory synaptic battery
-    N['V_injection_Ex'] = (0, 0, 0, 0, 0, 0) # [V]
+    N['V_injection_Ex'] = (0, 0, 0)  # [V]
     # Activation of synaptic conductance of the cell synapse for excitation
-    N['A_injection_Ex'] = np.zeros(12, preallocation)
+    N['A_injection_Ex'] = np.zeros((6, preallocation + 1))
     # Injection current excitatory
-    N['I_injection_Ex'] = np.zeros(12, preallocation) # [A]
+    N['I_injection_Ex'] = np.zeros((6, preallocation + 1))  # [A]
     # Time constant for excitatory activation of synaptic conductance
-    N['Tau_injection_Ex'] = (0.02, 0.02, 0.02, 0.02, 0.02, 0.02) # [s]
+    N['Tau_injection_Ex'] = (0.02, 0.035, 0.02)  # [s]
     # Inhibitory synaptic battery
-    N['V_injection_In'] = (-0.08, -0.08, -0.08, -0.08, -0.08, -0.08) # [V]
+    N['V_injection_In'] = (-0.08, -0.08, -0.08)  # [V]
     # Activation of synaptic conductance of the cell synapse for inhibition
-    N['A_injection_In'] = np.zeros(12, preallocation)
+    N['A_injection_In'] = np.zeros((6, preallocation + 1))
     # Time constant for inhibitory activation of synaptic conductance
-    N['Tau_injection_In'] = (0.03, 0.03, 0.03, 0.03, 0.03, 0.03) # [s]
+    N['Tau_injection_In'] = (0.03, 0.07, 0.03)  # [s]
     # Injection current inhibitory
-    N['I_injection_In'] = np.zeros(12, preallocation) # [A]
+    N['I_injection_In'] = np.zeros((6, preallocation + 1))  # [A]
     # Spontaneous firing rate activation
-    N['A_spontaneous'] = (0, 0.07, 0.0315, 0.06, 0, 0)
+    N['A_spontaneous'] = (0, 0, 0.12)
     # Synaptic adaptation parameters - ----------------------------------------
     # synaptic adaptation conductance change per activation
-    N['G_adaptation'] = (0, 0, 0, 0, 4e-7, 0) # [Siemens] X is place holder
+    N['G_adaptation'] = (0, 0.5e-7, 0)  # [Siemens]
     # adaptation conductance step
-    N['G_adaptation_Step'] = (0, 0, 0, 0, 0.05, 0)
+    N['G_adaptation_Step'] = (0, 0.1, 0)
     # spike rate adaptation activation
-    N['A_adaptation'] = np.zeros(12, preallocation)
+    N['A_adaptation'] = np.zeros((6, preallocation + 1))
     # spike rate adaptation activation power
-    N['A_adaptation_P'] = (1, 1, 1, 1, 4, 1)
+    N['A_adaptation_P'] = (1, 2, 1)
     # adaptation battery for hyperpolarization
-    N['V_adaptation'] = (0, 0, 0, 0, -0.07, 0) # [V]
+    N['V_adaptation'] = (0, -0.07, 0)  # [V]
     # spike rate adaptation time constant
-    N['Tau_adaptation'] = (9999999999, 9999999999, 9999999999, 9999999999, 0.5, 9999999999) # [s], huge values for excitatory neurons which don't adapt
+    N['Tau_adaptation'] = (9999999999, 0.5, 9999999999) # [s], huge values for excitatory neurons which don't adapt
     # synaptic input current
-    N['I_adaptation'] = np.zeros(12, preallocation)
+    N['I_adaptation'] = np.zeros((6, preallocation + 1))
     # Leak parameters - -------------------------------------------------------
     # Leak current
-    N['I_leak'] = np.zeros(12, preallocation) # [A]
+    N['I_leak'] = np.zeros((6, preallocation + 1))  # [A]
     # Leak conductance
-    N['G_leak'] = (5e-9, 5e-9, 5e-9, 5e-9, 5e-9, 5e-9) # [Siemens]
+    N['G_leak'] = (5e-9, 5e-9, 5e-9)  # [Siemens]
     # spike events
-    N['spike'] = np.zeros(12, preallocation) # [Binary]
+    N['spike'] = np.zeros((6, preallocation + 1))  # [Binary]
 
     return N, NeuronIndices
 
@@ -108,12 +104,12 @@ def computation(t,input,N,dt,population,neuronIndex) :
         # set excitatory injection activation
         N['A_injection_Ex'][neuronIndex,t] = \
             N['A_injection_Ex'][neuronIndex,t] \
-            + sum(input(input > 0)) \
+            + np.sum(x for x in input if x > 0) \
             + N['A_spontaneous'][population]
         # set inhibitory injection activation
         N['A_injection_In'][neuronIndex,t] =  \
             N['A_injection_In'][neuronIndex,t] \
-            + abs(sum(input(input < 0))) # find inhibitory input (everything negative)
+            + abs(np.sum(x for x in input if x < 0)) # find inhibitory input (everything negative)
 
     # Currents
     N['I_injection_Ex'][neuronIndex,t] = \
@@ -126,18 +122,17 @@ def computation(t,input,N,dt,population,neuronIndex) :
         N['G_injection'][population]*\
         N['A_injection_In'][neuronIndex,t]*\
         (N['V_injection_In'][population]\
-         - N['V'](neuronIndex,t))
+         - N['V'][neuronIndex,t])
 
     N['I_leak'][neuronIndex,t] = \
-        N['G_leak'](population)*\
-        (N['V_rest'](population) - \
+        N['G_leak'][population]*\
+        (N['V_rest'][population] - \
          N['V'][neuronIndex,t])
 
     N['I_adaptation'][neuronIndex,t] = \
         N['G_adaptation'][population]*\
-        N['A_adaptation'][neuronIndex,t]\
-        ^N['A_adaptation_P'][population]*\
-        (N['V_adaptation'][population] \
+        pow(N['A_adaptation'][neuronIndex,t], N['A_adaptation_P'][population]) \
+        *(N['V_adaptation'][population] \
          - N['V'][neuronIndex,t])
 
     # Calculate new voltage, depending on if neuron spikes
@@ -149,13 +144,13 @@ def computation(t,input,N,dt,population,neuronIndex) :
         N['V'][neuronIndex,t+1] = N['V_hyper'][population]
     else: # no
         # voltage change
-        dV = (dt/N.C_m[population])*\
+        dV = (dt/N['C_m'][population])*\
             (N['I_leak'][neuronIndex,t]\
             + N['I_injection_Ex'][neuronIndex,t]\
             + N['I_injection_In'][neuronIndex,t]\
             + N['I_adaptation'][neuronIndex,t])
         # add noise
-        dV = dV + dV*0.275*np.random.rand(1)
+        dV = dV + 0.01*np.random.rand(1)
         N['V'][neuronIndex,t+1] = N['V'][neuronIndex,t] + dV
 
     # synaptic activation variable A: decay
@@ -179,6 +174,7 @@ def computation(t,input,N,dt,population,neuronIndex) :
     if N['V'][neuronIndex,t+1] >= N['V_th'][population]:
         if N['V'][neuronIndex,t+1] == N['V_spike'][population]:
             # do nothing, no spike command
+            N['spike'][neuronIndex, t + 1] = 0
         else:
             # record a spike event
             N['spike'][neuronIndex,t+1] = 1
@@ -193,45 +189,33 @@ def computation(t,input,N,dt,population,neuronIndex) :
     return N
 
 # ----------------------------------------------------------------------------------------------------
-def NetworkStepper(N,N_Indices,t,dt,f,W):
+def NetworkStepper(N,NeuronIndices,t,dt,f,W) :
 
-'''
-:param N = Neuron parameters
-:param N_Indices = Neuron indices
-:param t = current time step
-:param dt = step size in [s]
-:param f = familiarity
-:param W = WeightMatrix
-:return N = see above
-'''
+    '''
+    :param N = Neuron parameters
+    :param N_Indices = Neuron indices
+    :param t = current time step
+    :param dt = step size in [s]
+    :param f = familiarity
+    :param W = WeightMatrix
+    :return N = see above
+    '''
 
-# neuron calculations
-for i in range(0,np.size(N_Indices,1)) :# loop through all populations
-    if i == 0 :# 1st population
-        for ii in range(i,N_Indices(i+1)) :# each ii depicts one neuron of the population
-            N = computation(t,W[:,ii].*f,N,dt,i,ii) # input is familiarity
+    # neuron calculations
+    for i in range(0,np.size(NeuronIndices,1)) :# loop through all populations
+        if i == 0 :# 1st population
+            for ii in range(i,NeuronIndices[0][i+1]) :# each ii depicts one neuron of the population
+                N = computation(t,np.multiply(W[ii],f),N,dt,i,ii) # input is familiarity
 
-    elif i == 1 :# 2nd population
-        for ii in range((N_Indices(i-1)+1),N_Indices(i)):
-            N = computation(t,W[:,ii].*N.spike[:,t],N,dt,i,ii)
+        elif i == 1 :# 2nd population
+            for ii in range((NeuronIndices[1][i-1]+1),NeuronIndices[1][i]):
+                N = computation(t,np.mulitply(W[ii],N['spike'][:,t]),N,dt,i,ii)
 
-    elif i == 2 :# 3rd population
-        for ii in (N_Indices(i-1)+1):N_Indices(i):
-            N = computation(t,W(:,ii).*N.spike(:,t),N,dt,i,ii)
+        elif i == 2 :# 3rd population
+            for ii in range((NeuronIndices[2][i-1]+1),NeuronIndices[2][i]):
+                N = computation(t,np.multiply(W[:,ii],N['spike'][:,t]),N,dt,i,ii)
 
-    elif i == 3 :# 4th population
-        for ii in range((N_Indices(i-1)+1),N_Indices(i)):
-            N = computation(t,W(:,ii).*N.spike(:,t),N,dt,i,ii)
-
-    elif i == 4 :# 5th population
-        for ii in range((N_Indices(i-1)+1),N_Indices(i)):
-            N = computation(t,W(:,ii).*N.spike(:,t),N,dt,i,ii)
-
-    elif i == 5 :# 6th population
-        for ii in range((N_Indices(i-1)+1),N_Indices(i)):
-            N = computation(t,W(:,ii).*N.spike(:,t),N,dt,i,ii)
-
-    return N
+        return N
 
 # ----------------------------------------------------------------------------------------------------
 def Weighting():
@@ -244,108 +228,55 @@ def Weighting():
     '''
     # setup connections for each population individually
     WE21 = 1 # Weight external input to population 1 (E21)
-    W122 = 4
-    W123 = 0.8
-    W124 = 4
-    W225 = 3
-    W423 = 0.71
-    W526 = 4
-    W622 = -11
-    W623 = -2.5556
-    W624 = -8.7778
-    Weights =(  [WE21, 0, W122, 0, W123, 0, W124, 0, 0, 0, 0, 0],\
-                [0, WE21, 0, W122, 0, W123, 0, W124, 0, 0, 0, 0],\
-                [0, 0, 0, 0, 0, 0, 0, 0, W225, 0, 0, 0],\
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, W225, 0, 0],\
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\
-                [0, 0, 0, 0, 0, W423, 0, 0, 0, 0, 0, 0],\
-                [0, 0, 0, 0, W423, 0, 0, 0, 0, 0, 0, 0],\
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, W526, 0],\
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, W526],\
-                [0, 0, 0, W622, 0, W623, 0, 0, 0, 0, 0, 0],\
-                [0, 0, W622, 0, W623, 0, W624, W624, 0, 0, 0, 0])
+    W122 = 5 # Weight from pop 1 to pop 2 (122)
+    W123 = 0.5
+    W222 = -3
+    W223 = -1
+    Weights =(  [WE21, 0, W122, W123, 0, 0],\
+                [0, WE21, 0, W122, 0, W123],\
+                [0, 0, 0, W222, 0, W223],\
+                [0, 0, W222, 0, W223, 0],\
+                [0, 0, 0, 0, 0, 0],\
+                [0, 0, 0, 0, 0, 0])
     return Weights
 
-def TI(Input,Force,Activation):
-    # Constants
-    C_M = 1e-7 # Membrane capacitance
-    V_R = 0 # V Rest
-    G_I = 1.3e-6 # conductance injection
-    V_I = 1 # V Injection maximum
-    T_I = 0.02 # Tau injection
-    G_L = 1e-7 # conductance leak
-    dt = 0.001 # time resolution
-    # Computations
-    Activation = Activation + Input # Force activation
-    I_Injection = G_I * Activation * (V_I - Force) # Injection current
-    I_Leak = G_L * (V_R - Force) # Leak current
-    dF = (dt / C_M) * (I_Leak + I_Injection) # Force change
-    Force = Force + dF # new force
-    dA = -(dt / T_I) * (Activation) # activation change
-    Activation = Activation + dA # new activation
-
-    return Force,Activation
-
-def TII(Input,Force,Activation):
-    # Constants
-    C_M = 1e-7 # Membrane capacitance
-    V_R = 0 # V Rest
-    G_I = 2e-6 # conductance injection
-    V_I = 1 # V Injection maximum
-    T_I = 0.02 # Tau injection
-    G_L = 1e-7 # conductance leak
-    dt = 0.001 # time resolution
-    # Computations
-    Activation = Activation + Input # Force activation
-    I_Injection = G_I * Activation * (V_I - Force) # Injection current
-    I_Leak = G_L * (V_R - Force) # Leak current
-    dF = (dt / C_M) * (I_Leak + I_Injection) # Force change
-    Force = Force + dF # new force
-    dA = -(dt / T_I) * (Activation) # activation change
-    Activation = Activation + dA # new activation
-
-    return Force,Activation
-
-def TIIS(ExInput, speed, Activation):
+def Accelerator(ExInput, a, A_injectionE):
     '''
-    TypeII Speed neuron
-    model the behaviour of f muscle generating force[forwardspeed(f)] with f
-    non spiking leaky&integrate neuron. Tuned for maximum output (1) with
-    input of 200 Hz
-    :param ExInput = spikes from the LAL-output neurons (population2)
-    :param speed =
-    :param Activation =
-    :return
+    model the behaviour of a muscle generating
+    force[acceleration(a)] with a leaky, integrate and not fire neuron
+    :param ExInput = spikes from the LAL -output neurons
+    :param a = acceleration[Voltage]
+    :param A_injection = activation of the "muscles"
     '''
     # behaviour variables
-    # membrane capacitance: excitability of the neuron
-    C_m = 5e-9 #[Farad]
+    # membrane conductance: excitability of the neuron
+    C_m = 3e-7 # [Farad]
     # synaptic conductance
-    G_injection = 3e-9 # [Siemens] 5e-10 + 2.5e-9*Activation/20
-    # maximum activation
-    a_injection_Ex = 1
+    G_injection = 1e-5 # [Siemens]
+    # maximum acceleration[deg / sec]
+    a_injection_Ex = 0.025 * 1.8 #[deg / msec]
     # time constant for A_synaptic excitatory
-    Tau_injection_Ex = 0.1 #[s]
+    Tau_injection_Ex = 0.012 # [s]
     dt = 0.001
 
     # Leak conductance
-    G_leak= 1e-6 # [Siemens]
+    G_leak = 5e-6 # [Siemens]
     # Resting potential
-    a_rest = 0 # [deg/sec]
+    a_rest = 0 # [deg / sec]
 
-    Activation = Activation + ExInput
-    I_injectionE  = G_injection*Activation*(a_injection_Ex - speed)
-    I_leak = G_leak*(a_rest - speed)
+    #
+    A_injectionE = A_injectionE + ExInput
+    I_injectionE = G_injection * A_injectionE * (a_injection_Ex - a)
+    I_leak = G_leak * (a_rest - a)
 
-    # voltage change
-    df= (dt/C_m)*(I_leak + I_injectionE)
+    #voltage change - -----------------------------------------------------
+    da = (dt / C_m) * (I_leak + I_injectionE)
 
     # new voltage
-    speed = speed + df
+    a = a + da
 
     # synaptic activation variable A_injection: decay excitatory
-    dA_syn = -(dt/Tau_injection_Ex)*Activation
-    Activation = Activation + dA_syn
+    dA_syn = -(dt / Tau_injection_Ex) * A_injectionE
+    A_injectionE = A_injectionE + dA_syn
 
-    return speed, Activation
+    return a, A_injectionE
