@@ -1,4 +1,5 @@
 import numpy as np
+
 '''
 These functions setup the SNN and compute it
 - builder: defines the neuron parameters
@@ -61,7 +62,7 @@ def builder(preallocation) :
     N['A_spontaneous'] = (0, 0, 0.12)
     # Synaptic adaptation parameters - ----------------------------------------
     # synaptic adaptation conductance change per activation
-    N['G_adaptation'] = (0, 0.5e-7, 0)  # [Siemens]
+    N['G_adaptation'] = (0, 0.5e-8, 0)  # [Siemens]
     # adaptation conductance step
     N['G_adaptation_Step'] = (0, 0.1, 0)
     # spike rate adaptation activation
@@ -84,9 +85,10 @@ def builder(preallocation) :
 
     return N, NeuronIndices
 
+'''
 # -----------------------------------------------------------------------------------------------------
 def computation(t,input,N,dt,population,neuronIndex) :
-    '''
+    
     computation calculates the new voltage state of a neuron, considering Ex/In inputs and adaptation
     :param t = timestep
     :param input = current spikes of the whole network calculated with weights
@@ -96,10 +98,13 @@ def computation(t,input,N,dt,population,neuronIndex) :
     # --> difference between inhibitory/excitatory
     :param neuronIndex = which neuron of the whole network
     :return N = see above
-    '''
+    
     # first test if the neuron spikes now and change Activations accordingly
-    if N['spike'][neuronIndex,t] == 1: ''' did this neuron spike last time?
-        do not take external inputs'''
+    if N['spike'][neuronIndex,t] == 1:
+        #did this neuron spike last time? do not take external inputs
+        N['A_injection_Ex'][neuronIndex,t] = 0
+        N['A_injection_In'][neuronIndex,t] = 0
+
     else: # it didn't, take external inputs
         # set excitatory injection activation
         N['A_injection_Ex'][neuronIndex,t] = \
@@ -174,7 +179,7 @@ def computation(t,input,N,dt,population,neuronIndex) :
     if N['V'][neuronIndex,t+1] >= N['V_th'][population]:
         if N['V'][neuronIndex,t+1] == N['V_spike'][population]:
             # do nothing, no spike command
-            N['spike'][neuronIndex, t + 1] = 0
+            N['spike'][neuronIndex,t+1] = 0
         else:
             # record a spike event
             N['spike'][neuronIndex,t+1] = 1
@@ -187,6 +192,110 @@ def computation(t,input,N,dt,population,neuronIndex) :
         N['V'][neuronIndex,t+1] = N['V_hyper'][population]
 
     return N
+'''
+#-------------------------------------------------------------------------
+def computation(t, input, N, dt, population, neuronIndex):
+    '''
+    computation calculates the new voltage state of a neuron, considering Ex/In inputs and adaptation
+    :param t = timestep
+    :param input = current spikes of the whole network calculated with weights
+    :param N = all neuron parameters
+    :param dt = time resolution
+    :param population = which of the network population is the current calculation
+    # --> difference between inhibitory/excitatory
+    :param neuronIndex = which neuron of the whole network
+    :return N = see above
+    '''
+    # print(input)
+    if N['spike'][neuronIndex,t] == 1: # % did this neuron spike last time? do not take external inputs
+
+        N['A_injection_Ex'][neuronIndex, t] = 0
+        N['A_injection_In'][neuronIndex, t] = 0
+
+    else: # it didn't, take external inputs
+        # set excitatory injection activation,  find excitatory input (everything positive)
+        #print('+', np.sum(input[input > 0]))
+        N['A_injection_Ex'][neuronIndex,t] =\
+            N['A_injection_Ex'][neuronIndex,t]\
+            + np.sum(input[input > 0]) \
+            + N['A_spontaneous'][population]
+
+        #% set inhibitory injection activation
+        N['A_injection_In'][neuronIndex,t] = \
+            N['A_injection_In'][neuronIndex,t] \
+            + abs(np.sum(input[input < 0]))  # find inhibitory input (everything negative)
+        #print('-', np.sum(abs(input[input > 0])))
+        if abs(np.sum(input[input < 0])) > 0:
+            y = 1
+
+
+    # Currents ---------------------------------------------------------------
+    N['I_injection_Ex'][neuronIndex,t] = \
+        N['G_injection'][population]*N['A_injection_Ex'][neuronIndex,t]* \
+       (N['V_injection_Ex'][population] - N['V'][neuronIndex,t])
+    N['I_injection_In'][neuronIndex,t] = \
+        N['G_injection'][population]*N['A_injection_In'][neuronIndex,t]* \
+       (N['V_injection_In'][population] - N['V'][neuronIndex,t])
+    N['I_leak'][neuronIndex,t] = \
+        N['G_leak'][population]*(N['V_rest'][population] - N['V'][neuronIndex,t])
+    N['I_adaptation'][neuronIndex,t] = \
+        N['G_adaptation'][population]*pow(N['A_adaptation'][neuronIndex,t], N['A_adaptation_P'][population])* \
+        (N['V_adaptation'][population] - N['V'][neuronIndex,t])
+
+    # Calculate new voltage, depending on if neuron spikes -------------------
+    if N['spike'][neuronIndex,t] == 1: # yes
+        # let it spike
+        N['V'][neuronIndex,t+1] = N['V_spike'][population]
+    elif N['V'][neuronIndex,t] == N['V_spike'][population]:
+        # reset voltage to hyperpolarization in the next step
+        N['V'][neuronIndex,t+1] = N['V_hyper'][population]
+    else: # no
+        # voltage change
+        dV = (dt/N['C_m'][population])*\
+            (N['I_leak'][neuronIndex,t]\
+            + N['I_injection_Ex'][neuronIndex,t]\
+            + N['I_injection_In'][neuronIndex,t]\
+            + N['I_adaptation'][neuronIndex,t])
+        # add noise
+        dV = dV + dV*0.25*np.random.rand(1)
+        N['V'][neuronIndex,t+1] = N['V'][neuronIndex,t] + dV
+
+    # synaptic activation variable A: decay ----------------------------------
+    # excitatory
+    dA_syn_ex = -(dt/N['Tau_injection_Ex'][population])*\
+               N['A_injection_Ex'][neuronIndex,t]
+    N['A_injection_Ex'][neuronIndex,t+1] =\
+        N['A_injection_Ex'][neuronIndex,t] + dA_syn_ex
+    # inhibitory
+    dA_syn_in = -(dt/N['Tau_injection_In'][population])*\
+               N['A_injection_In'][neuronIndex,t]
+    N['A_injection_In'][neuronIndex,t+1] =\
+        N['A_injection_In'][neuronIndex,t] + dA_syn_in
+
+    # conductance change da --------------------------------------------------
+    da = -(dt/N['Tau_adaptation'][population])*N['A_adaptation'][neuronIndex,t]
+    # new adaptation activation
+    N['A_adaptation'][neuronIndex,t+1] = N['A_adaptation'][neuronIndex,t] + da
+
+    # is the voltage surpassing the threshold for spiking next timestep ------
+    if N['V'][neuronIndex,t+1] >= N['V_th'][population]:
+        if N['V'][neuronIndex,t+1] == N['V_spike'][population]:
+            # do nothing, no spike command
+            N['spike'][neuronIndex,t+1] = 0
+
+        else:
+            # record a spike event
+            N['spike'][neuronIndex,t+1] = 1
+            # increase spike rate adaptation "activation"
+            N['A_adaptation'][neuronIndex,t+1] =\
+                N['A_adaptation'][neuronIndex,t+1]\
+                + N['G_adaptation_Step'][population]
+
+    elif N['V'][neuronIndex,t+1] < N['V_hyper'][population]:
+        N['V'][neuronIndex,t+1] = N['V_hyper'][population]
+
+    return N
+#--------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------------------------------
 def NetworkStepper(N,NeuronIndices,t,dt,f,W) :
@@ -202,20 +311,25 @@ def NetworkStepper(N,NeuronIndices,t,dt,f,W) :
     '''
 
     # neuron calculations
-    for i in range(0,np.size(NeuronIndices,1)) :# loop through all populations
+    for i in range(0, 3) :# loop through all populations
         if i == 0 :# 1st population
-            for ii in range(i,NeuronIndices[0][i+1]) :# each ii depicts one neuron of the population
-                N = computation(t,np.multiply(W[ii],f),N,dt,i,ii) # input is familiarity
+            for ii in [0, 1] :# each ii depicts one neuron of the population
 
-        elif i == 1 :# 2nd population
-            for ii in range((NeuronIndices[1][i-1]+1),NeuronIndices[1][i]):
-                N = computation(t,np.mulitply(W[ii],N['spike'][:,t]),N,dt,i,ii)
+                input = np.multiply(W[ii],f)
+                print(W[ii])
+                print(f)
+                print(input)
+                N = computation(t,input,N,dt,i,NeuronIndices[i][ii]) # input is familiarity
 
-        elif i == 2 :# 3rd population
-            for ii in range((NeuronIndices[2][i-1]+1),NeuronIndices[2][i]):
-                N = computation(t,np.multiply(W[:,ii],N['spike'][:,t]),N,dt,i,ii)
+        elif i > 0 :# 2nd or 3rd population
+            for ii in [0, 1] :
+                input = np.multiply(W[ii], N['spike'][0:6,t])
+                print(W[ii])
+                print(f)
+                print(input)
+                N = computation(t,input,N,dt,i,NeuronIndices[i][ii])
 
-        return N
+    return N
 
 # ----------------------------------------------------------------------------------------------------
 def Weighting():
@@ -232,12 +346,21 @@ def Weighting():
     W123 = 0.5
     W222 = -3
     W223 = -1
-    Weights =(  [WE21, 0, W122, W123, 0, 0],\
-                [0, WE21, 0, W122, 0, W123],\
-                [0, 0, 0, W222, 0, W223],\
-                [0, 0, W222, 0, W223, 0],\
-                [0, 0, 0, 0, 0, 0],\
-                [0, 0, 0, 0, 0, 0])
+    '''
+    Weights =(  [WE21, 0,    W122, 0,    W123, 0],\
+                [0,    WE21, 0,    W122, 0,    W123],\
+                [0,    0,    0,    W222, 0,    W223],\
+                [0,    0,    W222, 0,    W223, 0],\
+                [0,    0,    0,    0,    0,    0],\
+                [0,    0,    0,    0,    0,    0])
+    '''
+    Weights = ( [WE21,0,0,0,0,0], \
+                [0,WE21,0,0,0,0],\
+                [W122,0,0,W222,0,0],\
+                [0,W122,W222,0,0,0],\
+                [W123,0,0,W223,0,0],\
+                [0,W123,W223,0,0,0])
+
     return Weights
 
 def Accelerator(ExInput, a, A_injectionE):

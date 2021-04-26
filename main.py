@@ -1,5 +1,6 @@
 # This is the Simulation of the LAL-SNN
 import numpy as np
+import matplotlib.pyplot as plt
 from Neuronator import builder, Weighting, NetworkStepper, Accelerator
 
 # Simulation parameters --------------------------------------------------
@@ -30,8 +31,8 @@ Agent['AA'] = np.zeros((2, steps + 1))  # AccelerationActivation
 # test
 F = [24, 49, 74, 99]
 Agent['F'] = np.zeros((6, steps + 1))
-Agent['F'][0, 0:steps] = lookup['Input'][F[3]]
-Agent['F'][1, 0:steps] = lookup['Input'][F[3]]
+Agent['F'][0, 0:steps] = lookup['Input'][F[1]]
+Agent['F'][1, 0:steps] = lookup['Input'][F[1]]
 
 # Simulation
 for t in range(0, steps):
@@ -63,25 +64,26 @@ for t in range(0, steps):
     '''
 
 # visualization
-'''
-% for i = 1:(N_Indices(end))
-% subplot(N_Indices(end), 1, i)
-% bar(N.spike(i,:))
-% s(i) = sum(N.spike(i,:));
-% end
-% pause()
-% close
-%
-% bar(s)
-% pause()
-% close
-%
-% plot(Agent.Centre(:, 1), Agent.Centre(:, 2))
-% axis
-equal
-% pause()
-% close
-'''
+
+'''fig = plt.figure(figsize=(12,6))
+plt.bar(range(len(N['spike'][0, :])), N['spike'][0, :])
+plt.show()'''
+
+fig = plt.figure(figsize=(12,6))
+gs = fig.add_gridspec(6, 1)
+for i in range(0,6) :
+    ax = fig.add_subplot(gs[i, 0])
+    ax.bar(range(len(N['spike'][i, :])), N['spike'][i, :])
+    
+plt.show()
+
+fig = plt.figure(figsize=(12,6))
+gs = fig.add_gridspec(6, 1)
+for i in range(0, 6):
+    ax = fig.add_subplot(gs[i, 0])
+    ax.plot(range(len(N['V'][i, 0:100])), N['V'][i, 0:100])
+
+plt.show()
 # Data packing
 
 data = N['spike']
