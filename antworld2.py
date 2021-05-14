@@ -94,3 +94,5 @@ class Agent:
 Testing
 """
 # agent = Agent()
+# TODO: Run antworld agent for t1, graba  frame and pas to Breitenberg.
+# TODO: update agent possition for X no of steps before getting a new frame

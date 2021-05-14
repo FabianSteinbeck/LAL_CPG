@@ -315,11 +315,11 @@ def NetworkStepper(N,NeuronIndices,t,dt,f,W) :
         if i == 0 :# 1st population
             for ii in [0, 1] :# each ii depicts one neuron of the population
 
-                input = np.multiply(W[ii],f)
+                input = np.multiply(W[ii], f)
                 print(W[ii])
                 print(f)
                 print(input)
-                N = computation(t,input,N,dt,i,NeuronIndices[i][ii]) # input is familiarity
+                N = computation(t, input, N, dt, i, NeuronIndices[i][ii]) # input is familiarity
 
         elif i > 0 :# 2nd or 3rd population
             for ii in [0, 1] :
@@ -327,7 +327,7 @@ def NetworkStepper(N,NeuronIndices,t,dt,f,W) :
                 print(W[ii])
                 print(f)
                 print(input)
-                N = computation(t,input,N,dt,i,NeuronIndices[i][ii])
+                N = computation(t, input, N, dt, i, NeuronIndices[i][ii])
 
     return N
 
