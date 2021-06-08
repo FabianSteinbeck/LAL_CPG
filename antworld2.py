@@ -1,7 +1,7 @@
 import antworld
 import cv2
 import numpy as np
-from utils import squash_deg, pre_process, pol2cart
+from utils import squash_deg, pre_process, pol2cart, write_route, check_for_dir_and_create
 
 
 # Old Seville data (lower res, but loads faster)
@@ -90,9 +90,43 @@ class Agent:
         trajectory = {'x': traj[0], 'y': traj[1], 'heading': headings}
         return trajectory, nav
 
+    def record_route(self, route, path, route_id=1):
+        check_for_dir_and_create(path)
+        x = route['x']
+        y = route['y']
+        z = route['z']
+        headings = route['yaw']
+        # Fixed high for now
+        # TODO: in the future it may be a good idea to adap the coed to use the elevation
+        #   and the pitch, roll noise
+        z = 1.5
+        route['filename'] = []
+
+        for i, (xi, yi, h1) in enumerate(zip(x, y, headings)):
+            self.agent.set_position(xi, yi, z)
+            self.agent.set_attitude(h1, 0, 0)
+            img = self.agent.read_frame()
+            filename = path + "img%i.png" % i
+            cv2.imwrite(filename, img)
+            route['filename'].append("img%i.png" % i)
+
+        write_route(path, route, route_id=route_id)
+
 """
 Testing
 """
 # agent = Agent()
 # TODO: Run antworld agent for t1, graba  frame and pas to Breitenberg.
 # TODO: update agent possition for X no of steps before getting a new frame
+
+# How to record a route
+# route = {}
+# route['x'] = np.arange(10)
+# route['y'] = np.arange(10)
+# route['z'] = np.full(10, 1.5)
+# route['yaw'] = np.full(10, 45)
+# path = 'testroute/'
+# agent = Agent()
+# agent.record_route(route, path)
+
+

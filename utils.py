@@ -300,3 +300,13 @@ def pre_process(imgs, sets):
         imgs = [cv.Canny(img, lims[0], lims[1]) for img in imgs]
 
     return imgs if len(imgs) > 1 else imgs[0]
+
+
+def write_route(path, route, route_id=1):
+    route = pd.DataFrame(route)
+    route.to_csv(path + 'route' + str(route_id) + '.csv', index=False)
+
+
+def check_for_dir_and_create(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
