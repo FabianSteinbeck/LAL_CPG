@@ -4,9 +4,10 @@ import numpy as np
 
 
 class Breitenberg:
-    def __init__(self, steps, dt=0.001, overlap=10, blind=10):
+    def __init__(self, imgs, steps, dt=0.001, overlap=10, blind=10, no_of_eyes=2):
         self.overlap = overlap
         self.blind = blind
+        self.imgs = self.split_route_images(imgs)
         self.dt = dt
         self.t = 0
         self.Weights = Weighting()
@@ -15,8 +16,7 @@ class Breitenberg:
 
     def get_motors(self, img):
         # give the visual input to the LAL - network
-        l, r = image_split(img, overlap=self.overlap, blind=self.blind)
-        # TODO: compare left image with all left images and right image with all right images
+        l, r = self.matching_function(img)
         # TODO: Alternative: One Infomax model for each eye.
         # Familiriaty vector is 6 elements, first left fam, second right familiarity
         f = [l, r, 0, 0, 0, 0]
@@ -34,10 +34,17 @@ class Breitenberg:
         mr = self.logs['Acceleration'][1, self.t + 1]
         return ml, mr
 
-    def split_route_images(self):
-        pass
+    def split_route_images(self, imgs):
+        return [image_split(im, self.overlap, self.blind) for im in imgs]
 
-    def matching_function(self):
-        # return max familiarity for left and right
-        pass
+    def matching_function(self, img):
+        left_sims = []
+        right_sims = []
+        l, r = image_split(img, overlap=self.overlap, blind=self.blind)
+        for eyes in self.imgs:
+            left_sims.append(cor_coef(l, eyes[0]))
+            right_sims.append(cor_coef(r, eyes[1]))
+        best_left = np.max(left_sims)
+        best_right = np.max(right_sims)
+        return best_left, best_right
 
