@@ -37,7 +37,10 @@ class Agent:
 
     def update_position(self, xy, deg, r):
         rad = deg * (np.pi / 180)
-        x, y = pol2cart(r, rad)
+        # x and y are inverted because the antworld had the 0 degree origin north
+        # this corresponds to the flipping of x, y when calculating the new Cartesian
+        # direction
+        y, x = pol2cart(r, rad)
 
         xx = xy[0] + x
         yy = xy[1] + y

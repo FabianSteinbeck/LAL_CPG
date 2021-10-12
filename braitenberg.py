@@ -14,6 +14,9 @@ class Breitenberg:
         self.N, self.N_Indices = builder(steps)
         self.logs = {'Acceleration': np.zeros((2, steps + 1)), 'AA': np.zeros((2, steps + 1))}
 
+        self.radius = 1
+        self.bearing = []
+
     def get_motors(self, img):
         # give the visual input to the LAL - network
         l, r = self.matching_function(img)
@@ -33,6 +36,17 @@ class Breitenberg:
         ml = self.logs['Acceleration'][0, self.t + 1]
         mr = self.logs['Acceleration'][1, self.t + 1]
         return ml, mr
+
+    def get_heading(self, img):
+        ml, mr = self.get_motors(img)
+        # average velocity and angular velocity
+        va = (ml + mr) / 2
+        omega = (mr + ml) / (2 * self.radius)
+        bearing = np.fmod((self.bearing[-1] + self.dt * omega, (2*np.pi)))
+        self.bearing.append(bearing)
+        # angle in degrees
+        angle = bearing * (180 / np.pi)
+        return angle
 
     def split_route_images(self, imgs):
         return [image_split(im, self.overlap, self.blind) for im in imgs]
