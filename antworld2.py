@@ -66,7 +66,9 @@ class Agent:
         else:
             xy = (route['x'][0], route['y'][0])
             h = route['yaw'][0]
-
+        
+        nav.set_bearing(h)
+        
         # Place agent to the initial position and render the image
         img = self.get_img(xy, h)
         img = pre_process(img, preproc)

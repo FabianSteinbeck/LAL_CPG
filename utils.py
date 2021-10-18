@@ -112,18 +112,18 @@ def image_split(image, overlap=None, blind=0):
     '''
     num_of_cols = image.shape[1]
     if blind:
-        num_of_cols_perdegree = int(num_of_cols / 360)
+        num_of_cols_perdegree = int(round(num_of_cols / 360))
         blind_pixels = blind * num_of_cols_perdegree
-        blind_pixels_per_side = int(blind_pixels/2)
+        blind_pixels_per_side = int(round(blind_pixels/2))
         image = image[:, blind_pixels_per_side:-blind_pixels_per_side]
 
     num_of_cols = image.shape[1]
-    split_point = int(num_of_cols / 2)
+    split_point = int(round(num_of_cols / 2))
     if overlap:
-        num_of_cols_perdegree = int(num_of_cols / (360-blind))
+        num_of_cols_perdegree = int(round(num_of_cols / (360-blind)))
         pixel_overlap = overlap * num_of_cols_perdegree
-        l_split = split_point + int(pixel_overlap/2)
-        r_split = split_point - int(pixel_overlap/2)
+        l_split = split_point + int(round(pixel_overlap/2))
+        r_split = split_point - int(round(pixel_overlap/2))
         left = image[:, :l_split]
         right = image[:, r_split:]
     else:
@@ -146,7 +146,7 @@ def rotate(d, image):
 
     num_of_cols = image.shape[1]
     num_of_cols_perdegree = num_of_cols / 360
-    cols_to_shift = round(d * num_of_cols_perdegree)
+    cols_to_shift = int(round(d * num_of_cols_perdegree))
     return np.roll(image, -cols_to_shift, axis=1)
 
 

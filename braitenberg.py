@@ -4,7 +4,7 @@ import numpy as np
 
 
 class Breitenberg:
-    def __init__(self, imgs, steps, dt=0.001, overlap=10, blind=10, no_of_eyes=2):
+    def __init__(self, imgs, steps, dt=0.001, overlap=30, blind=45, no_of_eyes=2):
         self.overlap = overlap
         self.blind = blind
         self.imgs = self.split_route_images(imgs)
@@ -42,11 +42,30 @@ class Breitenberg:
         # average velocity and angular velocity
         va = (ml + mr) / 2
         omega = (mr + ml) / (2 * self.radius)
-        bearing = np.fmod((self.bearing[-1] + self.dt * omega, (2*np.pi)))
+        bearing = np.fmod(self.bearing[-1] + self.dt * omega, (2*np.pi))
         self.bearing.append(bearing)
         # angle in degrees
         angle = bearing * (180 / np.pi)
         return angle
+
+    def get_heading2(self, img):
+        '''
+        Function for converting motor input to heading using the matlab function
+        '''
+        ml, mr = self.get_motors(img)
+        r = 0.0033; # ~radius for the rotation in Melophorus bagoti
+        # rotation gain
+        RG = np.pi/180; # conversion deg -->rad
+        RotationPart = abs(ml - mr)
+        PropulsionPart = max(ml,mr) - RotationPart
+        if ml > mr:
+            phi = RG*(-RotationPart/r)
+        elif ml == mr:
+            phi = 0
+        elif ml < mr:
+            phi = RG*RotationPart/r
+
+        return phi
 
     def split_route_images(self, imgs):
         return [image_split(im, self.overlap, self.blind) for im in imgs]
@@ -61,4 +80,7 @@ class Breitenberg:
         best_left = np.max(left_sims)
         best_right = np.max(right_sims)
         return best_left, best_right
-
+    
+    def set_bearing(self, deg):
+        rad = deg * (np.pi / 180)
+        self.bearing.append(rad)
