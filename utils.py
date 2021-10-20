@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.lib.type_check import imag
 import pandas as pd
 import cv2 as cv
 from scipy.spatial.distance import correlation, cdist
@@ -102,6 +103,16 @@ def load_route_naw(path, route_id=1, imgs=False, query=False, max_dist=0.5):
     return route_data
 
 
+def offset_split(image, offset=45, overlap=None, blind=0):
+    #TODO: This funciton could be made more efficient by 
+    # combinig the offset and split calculation into one function
+    l = rotate(offset, image=image)
+    r = rotate(-offset, image=image)
+    l = image_split(l, overlap=overlap, blind=blind)
+    r = image_split(r, overlap=overlap, blind=blind)
+    return l, r
+
+
 def image_split(image, overlap=None, blind=0):
     '''
     Splits an image to 2 left and right part evenly when no overlap is provided.
@@ -189,17 +200,16 @@ def cov(a, b):
     return np.sum((a - a_mean) * (b - b_mean)) / (len(a))
 
 
-def cor_coef(a, b):
-    """
-    Calculate correlation coefficient
-    :param a: A single image or vector
-    :param b: A single image or vector
-    :return:
-    """
-    a = a.flatten()
-    b = b.flatten()
-    return cov(a, b) / (np.std(a) * np.std(b))
-
+def correlation(a, b):
+    amu = np.mean(a)
+    bmu = np.mean(b)
+    a = a - amu
+    b = b - bmu
+    ab = np.mean(a * b)
+    avar = np.mean(np.square(a))
+    bvar = np.mean(np.square(b))
+    return ab / np.sqrt(avar * bvar)
+    
 
 def rmse(a, b):
     """

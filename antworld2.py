@@ -68,7 +68,7 @@ class Agent:
             h = route['yaw'][0]
         
         nav.set_bearing(h)
-        
+
         # Place agent to the initial position and render the image
         img = self.get_img(xy, h)
         img = pre_process(img, preproc)
@@ -81,8 +81,7 @@ class Agent:
         traj[1, 0] = xy[1]
         # Navigation loop
         for i in range(1, t):
-            h = nav.get_heading(img)
-            #TODO: set r to the one returned from get_heading
+            h, r = nav.get_heading(img)
             h = headings[-1] + h
             h = squash_deg(h)
             headings.append(h)

@@ -1,4 +1,4 @@
-from utils import image_split, cor_coef
+from utils import image_split, correlation
 from Neuronator import builder, Weighting, NetworkStepper, Accelerator
 import numpy as np
 
@@ -37,21 +37,22 @@ class Breitenberg:
         mr = self.logs['Acceleration'][1, self.t + 1]
         return ml, mr
 
-    def get_heading(self, img):
-        ml, mr = self.get_motors(img)
-        # average velocity and angular velocity
-        va = (ml + mr) / 2
-        omega = (mr + ml) / (2 * self.radius)
-        bearing = np.fmod(self.bearing[-1] + self.dt * omega, (2*np.pi))
-        self.bearing.append(bearing)
-        # angle in degrees
-        angle = bearing * (180 / np.pi)
-        return angle
+    # def get_heading(self, img):
+    #     ml, mr = self.get_motors(img)
+    #     # average velocity and angular velocity
+    #     va = (ml + mr) / 2
+    #     omega = (mr + ml) / (2 * self.radius)
+    #     bearing = np.fmod(self.bearing[-1] + self.dt * omega, (2*np.pi))
+    #     self.bearing.append(bearing)
+    #     # angle in degrees
+    #     angle = bearing * (180 / np.pi)
+    #     return angle
 
-    def get_heading2(self, img):
+    def get_heading(self, img):
         '''
         Function for converting motor input to heading using the matlab function
         '''
+        MaxVel = 0.3; # [0.3 m/s -> 0.3mm/ms]
         ml, mr = self.get_motors(img)
         r = 0.0033; # ~radius for the rotation in Melophorus bagoti
         # rotation gain
@@ -64,7 +65,7 @@ class Breitenberg:
             phi = 0
         elif ml < mr:
             phi = RG*RotationPart/r
-        # TODO: get distance vector here and return with phi
+        Distance = PropulsionPart*MaxVel;
         return phi
 
     def split_route_images(self, imgs):
@@ -75,8 +76,8 @@ class Breitenberg:
         right_sims = []
         l, r = image_split(img, overlap=self.overlap, blind=self.blind)
         for eyes in self.imgs:
-            left_sims.append(cor_coef(l, eyes[0]))
-            right_sims.append(cor_coef(r, eyes[1]))
+            left_sims.append(correlation(l, eyes[0]))
+            right_sims.append(correlation(r, eyes[1]))
         best_left = np.max(left_sims)
         best_right = np.max(right_sims)
         return best_left, best_right
