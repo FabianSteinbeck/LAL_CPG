@@ -82,6 +82,7 @@ class Agent:
         # Navigation loop
         for i in range(1, t):
             h = nav.get_heading(img)
+            #TODO: set r to the one returned from get_heading
             h = headings[-1] + h
             h = squash_deg(h)
             headings.append(h)

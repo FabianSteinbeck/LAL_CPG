@@ -4,7 +4,7 @@ import numpy as np
 
 
 class Breitenberg:
-    def __init__(self, imgs, steps, dt=0.001, overlap=30, blind=45, no_of_eyes=2):
+    def __init__(self, imgs, steps, dt=0.001, overlap=90, blind=90, no_of_eyes=2):
         self.overlap = overlap
         self.blind = blind
         self.imgs = self.split_route_images(imgs)
@@ -64,7 +64,7 @@ class Breitenberg:
             phi = 0
         elif ml < mr:
             phi = RG*RotationPart/r
-
+        # TODO: get distance vector here and return with phi
         return phi
 
     def split_route_images(self, imgs):
