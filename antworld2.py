@@ -37,7 +37,10 @@ class Agent:
 
     def update_position(self, xy, deg, r):
         rad = deg * (np.pi / 180)
-        x, y = pol2cart(r, rad)
+        # x and y are inverted because the antworld had the 0 degree origin north
+        # this corresponds to the flipping of x, y when calculating the new Cartesian
+        # direction
+        y, x = pol2cart(r, rad)
 
         xx = xy[0] + x
         yy = xy[1] + y
@@ -63,6 +66,8 @@ class Agent:
         else:
             xy = (route['x'][0], route['y'][0])
             h = route['yaw'][0]
+        
+        nav.set_bearing(h)
 
         # Place agent to the initial position and render the image
         img = self.get_img(xy, h)
@@ -76,7 +81,7 @@ class Agent:
         traj[1, 0] = xy[1]
         # Navigation loop
         for i in range(1, t):
-            h = nav.get_heading(img)
+            h, r = nav.get_heading(img)
             h = headings[-1] + h
             h = squash_deg(h)
             headings.append(h)

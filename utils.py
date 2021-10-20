@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.lib.type_check import imag
 import pandas as pd
 import cv2 as cv
 from scipy.spatial.distance import correlation, cdist
@@ -102,6 +103,16 @@ def load_route_naw(path, route_id=1, imgs=False, query=False, max_dist=0.5):
     return route_data
 
 
+def offset_split(image, offset=45, overlap=None, blind=0):
+    #TODO: This funciton could be made more efficient by 
+    # combinig the offset and split calculation into one function
+    l = rotate(offset, image=image)
+    r = rotate(-offset, image=image)
+    l = image_split(l, overlap=overlap, blind=blind)
+    r = image_split(r, overlap=overlap, blind=blind)
+    return l, r
+
+
 def image_split(image, overlap=None, blind=0):
     '''
     Splits an image to 2 left and right part evenly when no overlap is provided.
@@ -112,18 +123,18 @@ def image_split(image, overlap=None, blind=0):
     '''
     num_of_cols = image.shape[1]
     if blind:
-        num_of_cols_perdegree = int(num_of_cols / 360)
+        num_of_cols_perdegree = int(round(num_of_cols / 360))
         blind_pixels = blind * num_of_cols_perdegree
-        blind_pixels_per_side = int(blind_pixels/2)
+        blind_pixels_per_side = int(round(blind_pixels/2))
         image = image[:, blind_pixels_per_side:-blind_pixels_per_side]
 
     num_of_cols = image.shape[1]
-    split_point = int(num_of_cols / 2)
+    split_point = int(round(num_of_cols / 2))
     if overlap:
-        num_of_cols_perdegree = int(num_of_cols / (360-blind))
+        num_of_cols_perdegree = int(round(num_of_cols / (360-blind)))
         pixel_overlap = overlap * num_of_cols_perdegree
-        l_split = split_point + int(pixel_overlap/2)
-        r_split = split_point - int(pixel_overlap/2)
+        l_split = split_point + int(round(pixel_overlap/2))
+        r_split = split_point - int(round(pixel_overlap/2))
         left = image[:, :l_split]
         right = image[:, r_split:]
     else:
@@ -146,7 +157,7 @@ def rotate(d, image):
 
     num_of_cols = image.shape[1]
     num_of_cols_perdegree = num_of_cols / 360
-    cols_to_shift = round(d * num_of_cols_perdegree)
+    cols_to_shift = int(round(d * num_of_cols_perdegree))
     return np.roll(image, -cols_to_shift, axis=1)
 
 
@@ -189,17 +200,16 @@ def cov(a, b):
     return np.sum((a - a_mean) * (b - b_mean)) / (len(a))
 
 
-def cor_coef(a, b):
-    """
-    Calculate correlation coefficient
-    :param a: A single image or vector
-    :param b: A single image or vector
-    :return:
-    """
-    a = a.flatten()
-    b = b.flatten()
-    return cov(a, b) / (np.std(a) * np.std(b))
-
+def correlation(a, b):
+    amu = np.mean(a)
+    bmu = np.mean(b)
+    a = a - amu
+    b = b - bmu
+    ab = np.mean(a * b)
+    avar = np.mean(np.square(a))
+    bvar = np.mean(np.square(b))
+    return ab / np.sqrt(avar * bvar)
+    
 
 def rmse(a, b):
     """
