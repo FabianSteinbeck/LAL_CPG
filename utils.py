@@ -108,8 +108,8 @@ def offset_split(image, offset=45, overlap=None, blind=0):
     # combinig the offset and split calculation into one function
     l = rotate(offset, image=image)
     r = rotate(-offset, image=image)
-    l = image_split(l, overlap=overlap, blind=blind)
-    r = image_split(r, overlap=overlap, blind=blind)
+    l, _ = image_split(l, overlap=overlap, blind=blind)
+    _, r = image_split(r, overlap=overlap, blind=blind)
     return l, r
 
 
